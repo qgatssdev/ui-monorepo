@@ -14,6 +14,9 @@ type CanSubmit = Pick<
   fromInput: string
 }
 
+export const getMinimumAmount = (token: Token): Big =>
+  new Big(1).div(new Big(10).pow(token.decimals))
+
 export const canSubmit = ({
   balance,
   chainId,
@@ -23,6 +26,8 @@ export const canSubmit = ({
 }: CanSubmit) =>
   Big(fromInput).gt(0) &&
   chainId === fromNetworkId &&
+  // amount must be at least the minimum representable value
+  Big(fromInput).gte(getMinimumAmount(fromToken)) &&
   // for native tokens, it can't match the whole balance
   // as native tokens are used to pay for fees
   Big(fromInput)[isNativeToken(fromToken) ? 'lt' : 'lte'](
